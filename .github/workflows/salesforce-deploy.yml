@@ -1,1 +1,65 @@
+name: Salesforce CI/CD Pipeline
 
+on:
+  push:
+    branches:
+      - main  # Altere para a branch que você usa para deployment
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout do repositório
+      - name: Checkout source code
+        uses: actions/checkout@v3
+
+      # 2. Instala o Salesforce CLI
+      - name: Install Salesforce CLI
+        run: |
+          npm install --global sfdx-cli
+
+      # 3. Autenticação na Org Salesforce via senha + token
+      - name: Authenticate to Salesforce Org
+        run: |
+          sfdx force:auth:password:grant \
+            --clientid ${{ secrets.SFDX_CLIENT_ID }} \
+            --username ${{ secrets.SFDX_USERNAME }} \
+            --password "${{ secrets.SFDX_PASSWORD }}${{ secrets.SFDX_SECURITY_TOKEN }}" \
+            --instanceurl ${{ secrets.SFDX_INSTANCE_URL }} \
+            --setdefaultusername
+
+      # 4. (Opcional) Lista as orgs autenticadas
+      - name: Confirm authentication
+        run: sfdx force:org:list
+
+      # 5. Fase de validação (checkonly) com testes
+      - name: Validate deployment (checkonly)
+        run: |
+          sfdx force:source:deploy \
+            --sourcepath force-app \
+            --targetusername ${{ secrets.SFDX_USERNAME }} \
+            --testlevel RunLocalTests \
+            --checkonly \
+            --wait 10 \
+            --verbose
+
+      # 6. Se validação passou, faz deploy real
+      - name: Deploy to Salesforce (real)
+        run: |
+          sfdx force:source:deploy \
+            --sourcepath force-app \
+            --targetusername ${{ secrets.SFDX_USERNAME }} \
+            --testlevel RunLocalTests \
+            --wait 10 \
+            --verbose
+
+      # 7. Executa testes Apex e mostra cobertura
+      - name: Run Apex Tests (with coverage)
+        run: |
+          sfdx force:apex:test:run \
+            --resultformat human \
+            --wait 10 \
+            --codecoverage \
+            --outputdir test-results \
+            --targetusername ${{ secrets.SFDX_USERNAME }}
