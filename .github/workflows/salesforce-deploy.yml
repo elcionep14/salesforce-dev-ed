@@ -30,11 +30,7 @@ jobs:
             --instanceurl https://login.salesforce.com \
             --setdefaultusername
 
-      # 4. Lista as orgs autenticadas
-      - name: Confirm authentication
-        run: sfdx force:org:list
-
-      # 5. Fase de validação (checkonly) com testes
+      # 4. Fase de validação (checkonly) com testes
       - name: Validate deployment (checkonly)
         run: |
           sfdx force:source:deploy \
@@ -45,7 +41,7 @@ jobs:
             --wait 10 \
             --verbose
 
-      # 6. Se validação passou, faz deploy real
+      # 5. Se validação passou, faz deploy real
       - name: Deploy to Salesforce (real)
         run: |
           sfdx force:source:deploy \
@@ -55,7 +51,7 @@ jobs:
             --wait 10 \
             --verbose
 
-      # 7. Executa testes Apex e mostra cobertura
+      # 6. Executa testes Apex e mostra cobertura
       - name: Run Apex Tests (with coverage)
         run: |
           sfdx force:apex:test:run \
