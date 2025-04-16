@@ -19,17 +19,18 @@ jobs:
         run: |
           npm install --global sfdx-cli
 
-      # 3. Autenticação na Org Salesforce via senha + token
+      # 3. Autenticação na Org Salesforce via Password Grant Flow
       - name: Authenticate to Salesforce Org
         run: |
           sfdx force:auth:password:grant \
             --clientid ${{ secrets.SFDX_CLIENT_ID }} \
+            --clientsecret ${{ secrets.SFDX_CLIENT_SECRET }} \
             --username ${{ secrets.SFDX_USERNAME }} \
             --password "${{ secrets.SFDX_PASSWORD }}${{ secrets.SFDX_SECURITY_TOKEN }}" \
-            --instanceurl ${{ secrets.SFDX_INSTANCE_URL }} \
+            --instanceurl https://login.salesforce.com \
             --setdefaultusername
 
-      # 4. (Opcional) Lista as orgs autenticadas
+      # 4. Lista as orgs autenticadas
       - name: Confirm authentication
         run: sfdx force:org:list
 
